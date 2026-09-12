@@ -8,10 +8,10 @@
 //     інструменті — dbdiagram.io, draw.io, Lucidchart тощо.
 //
 //  2. Додайте зображення вашої фінальної ER-діаграми (можна вставити як посилання на зображення в інтернеті та обов'язково закомітити файл з діаграмою в репозиторій).
-//
+//      https://drive.google.com/file/d/1xYbnatB6-wEzHeGYn1v613wnpt7_YR2J/view
 //  2. Кожен учасник команди підписує таблиці, які він створював:
 //
-//     [Ім'я] — назви таблиць через кому
+//     [Борис] — members
 //     [Ім'я] — назви таблиць через кому
 //     [Ім'я] — назви таблиць через кому
 //
@@ -36,3 +36,13 @@
 
 
 // Вставте ваш DBML-код нижче 👇
+
+Table members { 
+  member_id int [pk, increment]
+  first_name varchar(50) [not null] 
+  last_name varchar(50) [not null] 
+  phone varchar(20) 
+  email varchar(100) [unique] 
+  birth_date date 
+  registration_date date [default: 'now()'] 
+}
