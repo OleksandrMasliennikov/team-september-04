@@ -8,7 +8,7 @@
 | Учасник | Роль у команді | Що зроблено | Артефакти / файли |
 |---|---|---|---|
 | Борис | Database Designer | Таблиця `members` з полями та зв'язками | https://drive.google.com/file/d/1EzYCvzAArTKEp3Fx25kBSBJh629Mu5Hi/view?usp=drive_link |
-| Oksana | Database Designer | Таблиця `trainers` з полями та зв'язками | - [Відео](https://docs.google.com/videos/d/1ZydGbAw412mE1kTyYDNVbxYeN5EVj5vBMq5Ut7ET0IQ/edit?scene=id.p#scene=id.p) <br>- [ER diagram](https://drive.google.com/file/d/1KOufJozoViDQAvruiJxsVuOFuHQbiJUE/view) |
+| Oksana | Database Designer | Таблиця `trainers` з полями та зв'язками | - [Відео](https://docs.google.com/videos/d/1ZydGbAw412mE1kTyYDNVbxYeN5EVj5vBMq5Ut7ET0IQ/play?usp=sharing) <br>- [ER diagram](https://drive.google.com/file/d/1KOufJozoViDQAvruiJxsVuOFuHQbiJUE/view?usp=drive_link) |
 | ... | ... | ... | ... |
 
 ## Контекст теми
