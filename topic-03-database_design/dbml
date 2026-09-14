@@ -73,5 +73,19 @@ Table trainers {
   hire_date date
 }
 
+Table attendance {
+  attendance_id int [pk, increment]
+  member_id int [not null]
+  class_id int [not null]
+  attendance_date timestamp [not null]
+
+  indexes {
+    (member_id, class_id) [unique]
+  }
+}
+
 Ref: memberships.member_id > members.member_id
 Ref: memberships.plan_id > membership_plans.plan_id
+
+Ref: attendance.member_id > members.member_id
+Ref: attendance.class_id > classes.class_id
