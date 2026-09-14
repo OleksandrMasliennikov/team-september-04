@@ -63,5 +63,15 @@ Table membership_plans {
   price decimal(10,2) [not null]
 }
 
+Table trainers {
+  trainer_id int [pk, increment]
+  first_name varchar(50) [not null]
+  last_name varchar(50) [not null]
+  birth_date date
+  phone varchar(20)
+  email varchar(100) [unique]
+  hire_date date
+}
+
 Ref: memberships.member_id > members.member_id
 Ref: memberships.plan_id > membership_plans.plan_id
