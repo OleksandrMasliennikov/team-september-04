@@ -9,12 +9,13 @@
 |---|---|---|---|
 | Борис | Database Designer | Таблиця `members` з полями та зв'язками | https://drive.google.com/file/d/1EzYCvzAArTKEp3Fx25kBSBJh629Mu5Hi/view?usp=drive_link |
 | Oksana | Database Designer | Таблиця `trainers` з полями та зв'язками | - [Відео](https://docs.google.com/videos/d/1ZydGbAw412mE1kTyYDNVbxYeN5EVj5vBMq5Ut7ET0IQ/play?usp=sharing) <br>- [ER diagram](https://drive.google.com/file/d/1KOufJozoViDQAvruiJxsVuOFuHQbiJUE/view?usp=drive_link) |
-| ... | ... | ... | ... |
+| Василь | Database Designer | Таблиця `attendance` з полями та зв'язками| https://drive.google.com/file/d/1JWch2SM87iuZqoiCifBp9ulLdnOAmwM0/view?usp=sharing |
 
 ## Контекст теми
 Опишіть, хто за яку частину відповідав.<br>
 Борис розробляв таблицю `members`, яка зберігає інформацію про учасників системи та пов'язана з проектами та завданнями.<br>
 Оксана розробляла таблицю `trainers`, яка зберігає інформацію про тренерів фітнес-центру. Таблиця `trainers` пов'язана з таблицею `classes` зв'язком one-to-many: один тренер може проводити декілька занять.
+Василь відповідав за проєктування таблиці attendance: визначив її поля, первинний ключ і зв’язки з таблицями members та classes. Також додав обмеження унікальності пари member_id і class_id, щоб запобігти повторному запису одного клієнта на те саме заняття.
 
 ## Коротке обґрунтування вибору початкового варіанта
 1. Чому команда обрала саме цей варіант: 
