@@ -12,7 +12,7 @@
 //  2. Кожен учасник команди підписує таблиці, які він створював:
 //
 //     [Борис] — members
-//     [Ім'я] — назви таблиць через кому
+//     [Oleksandr] — memberships, membership_plans
 //     [Ім'я] — назви таблиць через кому
 //
 //  4. У цьому файлі додайте DBML-код вашої схеми.
@@ -37,12 +37,62 @@
 
 // Вставте ваш DBML-код нижче 👇
 
-Table members { 
+Table members {
   member_id int [pk, increment]
-  first_name varchar(50) [not null] 
-  last_name varchar(50) [not null] 
-  phone varchar(20) 
-  email varchar(100) [unique] 
-  birth_date date 
-  registration_date date [default: 'now()'] 
+  first_name varchar(50) [not null]
+  last_name varchar(50) [not null]
+  phone varchar(20)
+  email varchar(100) [unique]
+  birth_date date
+  registration_date date [default: 'now()']
 }
+
+Table memberships {
+  membership_id int [pk, increment]
+  member_id int [not null]
+  plan_id int [not null]
+  start_date date [not null]
+  end_date date [not null]
+  status varchar(20) [not null, default: 'active']
+}
+
+Table membership_plans {
+  plan_id int [pk, increment]
+  plan_name varchar(50) [not null, unique]
+  duration_months int [not null]
+  price decimal(10,2) [not null]
+}
+
+Table trainers {
+  trainer_id int [pk, increment]
+  first_name varchar(50) [not null]
+  last_name varchar(50) [not null]
+  birth_date date
+  phone varchar(20)
+  email varchar(100) [unique]
+  hire_date date
+}
+
+Table Classes {
+  class_id integer [pk, increment]
+  class_name varchar(100) [not null]
+  trainer_id integer [not null]
+  schedule_datetime datetime [not null]
+}
+
+Table attendance {
+  attendance_id int [pk, increment]
+  member_id int [not null]
+  class_id int [not null]
+  attendance_date timestamp [not null]
+
+  indexes {
+    (member_id, class_id) [unique]
+  }
+}
+
+Ref: memberships.member_id > members.member_id
+Ref: memberships.plan_id > membership_plans.plan_id
+Ref: classes.trainer_id > trainers.trainer_id
+Ref: attendance.member_id > members.member_id
+Ref: attendance.class_id > classes.class_id
