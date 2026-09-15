@@ -73,7 +73,7 @@ Table trainers {
   hire_date date
 }
 
-Table Classes {
+Table classes {
   class_id integer [pk, increment]
   class_name varchar(100) [not null]
   trainer_id integer [not null]
