@@ -11,11 +11,13 @@
 | Oksana | Database Designer | Таблиця `trainers` з полями та зв'язками | - [Відео](https://docs.google.com/videos/d/1ZydGbAw412mE1kTyYDNVbxYeN5EVj5vBMq5Ut7ET0IQ/play?usp=sharing) <br>- [ER diagram](https://drive.google.com/file/d/1KOufJozoViDQAvruiJxsVuOFuHQbiJUE/view?usp=drive_link) |
 | Василь | Database Designer | Таблиця `attendance` з полями та зв'язками| https://drive.google.com/file/d/1JWch2SM87iuZqoiCifBp9ulLdnOAmwM0/view?usp=sharing |
 | Єгор | Database Designer | Таблиця `classes` з полями та зв'язками | https://drive.google.com/file/d/1lhvzL_3UUAlvUtI6SLv1GQZk-WADQ_d9/view?usp=sharing |
+| Олександр | Database Designer | Таблиця `memberships` та `membership_plans` з полями та звʼязками | https://drive.google.com/file/d/1re4bup5D6aEzow1un-4B5jnAkdQ6QwEk/view?usp=drive_link |
 
 ## Контекст теми
 Опишіть, хто за яку частину відповідав.<br>
 Борис розробляв таблицю `members`, яка зберігає інформацію про учасників системи та пов'язана з проектами та завданнями.<br>
 Оксана розробляла таблицю `trainers`, яка зберігає інформацію про тренерів фітнес-центру. Таблиця `trainers` пов'язана з таблицею `classes` зв'язком one-to-many: один тренер може проводити декілька занять.
+Олександр розробляв таблиці `memberships` та `membership_plans`, які зберігають інформацію про абонементи користувачів і доступні тарифні плани. Таблиця members пов'язана з таблицею memberships зв'язком one-to-many: один користувач може мати декілька абонементів. Таблиця membership_plans також пов'язана з таблицею memberships зв'язком one-to-many: один тарифний план може використовуватися в багатьох абонементах.
 Василь відповідав за проєктування таблиці attendance: визначив її поля, первинний ключ і зв’язки з таблицями members та classes. Також додав обмеження унікальності пари member_id і class_id, щоб запобігти повторному запису одного клієнта на те саме заняття.
 Єгор відповідає за таблицю `classes`, яка зберігає інформацію про заняття фітнес-центру. Таблиця містить назву заняття, тренера, який його проводить, а також дату та час проведення. Для кожного заняття використовується унікальний `class_id` як первинний ключ.
 
