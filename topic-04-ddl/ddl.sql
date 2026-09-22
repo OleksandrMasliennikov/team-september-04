@@ -82,7 +82,7 @@ CREATE TABLE fitness_center_team4.trainers (
   email varchar(100) UNIQUE,
   hire_date date,
   CONSTRAINT trainers_pkey PRIMARY KEY(trainer_id)
- )
+ );
 
 CREATE INDEX idx_memberships_member_id ON fitness_center_team4.memberships(member_id);
 
