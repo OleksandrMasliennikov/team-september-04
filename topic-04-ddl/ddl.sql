@@ -18,6 +18,7 @@
 -- Example:
 -- [Name] - users, roles, permissions tables
 -- [Name] - orders, payments, invoices tables
+-- [Oleksandr] - membership_plans and memberships tables, membership_status ENUM, constraints, foreign keys, and indexes
 --
 -- IMPORTANT:
 -- The script must run in PostgreSQL and produce a working schema that
@@ -27,4 +28,33 @@
 
 -- Add your DDL below this line
 
+CREATE TYPE membership_status AS ENUM (
+    'active',
+    'expired',
+    'frozen',
+    'cancelled'
+);
 
+CREATE TABLE membership_plans (
+    plan_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    plan_name VARCHAR(50) NOT NULL UNIQUE,
+    duration_months INTEGER NOT NULL,
+    price NUMERIC(10, 2) NOT NULL,
+    CONSTRAINT chk_duration_positive CHECK (duration_months > 0),
+    CONSTRAINT chk_price_non_negative CHECK (price >= 0)
+);
+
+CREATE TABLE memberships (
+    membership_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    member_id INTEGER NOT NULL,
+    plan_id INTEGER NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    status membership_status NOT NULL DEFAULT 'active',
+    CONSTRAINT fk_memberships_member FOREIGN KEY (member_id) REFERENCES members(member_id),
+    CONSTRAINT fk_memberships_plan FOREIGN KEY (plan_id) REFERENCES membership_plans(plan_id),
+    CONSTRAINT chk_dates_valid CHECK (end_date > start_date)
+);
+
+CREATE INDEX idx_memberships_member_id ON memberships(member_id);
+CREATE INDEX idx_memberships_plan_id ON memberships(plan_id);
