@@ -17,7 +17,7 @@
 -- Add short attribution comments for who implemented which part.
 -- Example:
 -- [Name] - users, roles, permissions tables
--- [Name] - orders, payments, invoices tables
+-- [Boris] - members table, constraints (NOT NULL, UNIQUE email, DEFAULT registration_date), and search indexes (phone, last_name, first_name)
 -- [Oleksandr] - membership_plans and memberships tables, membership_status ENUM, constraints, foreign keys, and indexes
 --
 -- IMPORTANT:
@@ -35,6 +35,19 @@ CREATE TYPE fitness_center_team4.membership_status AS ENUM (
     'frozen',
     'cancelled'
 );
+
+CREATE TABLE fitness_center_team4.members (
+    member_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    phone VARCHAR(20),
+    email VARCHAR(100) UNIQUE,
+    birth_date DATE,
+    registration_date DATE DEFAULT CURRENT_DATE
+);
+
+CREATE INDEX idx_members_last_first_name ON fitness_center_team4.members(last_name, first_name);
+CREATE INDEX idx_members_phone ON fitness_center_team4.members(phone);
 
 CREATE TABLE fitness_center_team4.membership_plans (
     plan_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
