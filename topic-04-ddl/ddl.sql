@@ -27,15 +27,16 @@
 -- ================================================================
 
 -- Add your DDL below this line
+CREATE SCHEMA IF NOT EXISTS fitness_center_team4;
 
-CREATE TYPE membership_status AS ENUM (
+CREATE TYPE fitness_center_team4.membership_status AS ENUM (
     'active',
     'expired',
     'frozen',
     'cancelled'
 );
 
-CREATE TABLE membership_plans (
+CREATE TABLE fitness_center_team4.membership_plans (
     plan_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     plan_name VARCHAR(50) NOT NULL UNIQUE,
     duration_months INTEGER NOT NULL,
@@ -44,17 +45,23 @@ CREATE TABLE membership_plans (
     CONSTRAINT chk_price_non_negative CHECK (price >= 0)
 );
 
-CREATE TABLE memberships (
+CREATE TABLE fitness_center_team4.memberships (
     membership_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     member_id INTEGER NOT NULL,
     plan_id INTEGER NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
-    status membership_status NOT NULL DEFAULT 'active',
-    CONSTRAINT fk_memberships_member FOREIGN KEY (member_id) REFERENCES members(member_id),
-    CONSTRAINT fk_memberships_plan FOREIGN KEY (plan_id) REFERENCES membership_plans(plan_id),
+    status fitness_center_team4.membership_status NOT NULL DEFAULT 'active',
+
+    CONSTRAINT fk_memberships_member FOREIGN KEY (member_id) REFERENCES fitness_center_team4.members(member_id),
+
+    CONSTRAINT fk_memberships_plan FOREIGN KEY (plan_id) REFERENCES fitness_center_team4.membership_plans(plan_id),
+
     CONSTRAINT chk_dates_valid CHECK (end_date > start_date)
 );
 
-CREATE INDEX idx_memberships_member_id ON memberships(member_id);
-CREATE INDEX idx_memberships_plan_id ON memberships(plan_id);
+CREATE INDEX idx_memberships_member_id
+    ON fitness_center_team4.memberships(member_id);
+
+CREATE INDEX idx_memberships_plan_id
+    ON fitness_center_team4.memberships(plan_id);
