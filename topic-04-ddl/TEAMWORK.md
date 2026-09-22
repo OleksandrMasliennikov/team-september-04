@@ -1,14 +1,15 @@
 # TEAMWORK - Topic 04 (SQL DDL)
 
 ## Склад команди
-- Команда: ...
-- Варіант предметної області: ...
+- Команда: Team 4
+- Варіант предметної області: Fitness Center Management
 
 ## Таблиця внесків
 | Учасник | Роль у команді | Що зроблено | Артефакти / файли |
 |---|---|---|---|
 | ... | ... | ... | ... |
 | Oleksandr | Database Developer | Розробив DDL для `membership_plans` і `memberships`, створив `membership_status` ENUM, PK/FK, CHECK constraints та indexes для `member_id` і `plan_id`. | `ddl.sql` (membership section) |
+| Oksana | Database Developer | Розробила DDL для таблиці `trainers`, створила PRIMARY KEY для `trainer_id` та налаштувала для нього автоматичну генерацію значень `IDENTITY`. Для моєї таблиці додаткові constraints не потрібні. Також немає додаткових полів, для яких потрібно створювати індекси. | `ddl.sql` (trainers section) |
 | ... | ... | ... | ... |
 
 ## Контекст теми
