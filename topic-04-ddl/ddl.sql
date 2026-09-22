@@ -88,3 +88,22 @@ CREATE TABLE fitness_center_team4.memberships (
 CREATE INDEX idx_memberships_member_id ON fitness_center_team4.memberships(member_id);
 
 CREATE INDEX idx_memberships_plan_id ON fitness_center_team4.memberships(plan_id);
+
+
+CREATE TABLE fitness_center_team4.attendance (
+    attendance_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    member_id INTEGER NOT NULL,
+    class_id INTEGER NOT NULL,
+    checked_in_at TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT fk_attendance_member FOREIGN KEY (member_id)
+        REFERENCES fitness_center_team4.members(member_id),
+
+    CONSTRAINT fk_attendance_class FOREIGN KEY (class_id)
+        REFERENCES fitness_center_team4.classes(class_id),
+
+    CONSTRAINT uq_attendance_member_class UNIQUE (member_id, class_id)
+);
+
+CREATE INDEX idx_attendance_class_id
+    ON fitness_center_team4.attendance(class_id);
