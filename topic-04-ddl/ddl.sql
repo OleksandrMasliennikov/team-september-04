@@ -60,8 +60,6 @@ CREATE TABLE fitness_center_team4.memberships (
     CONSTRAINT chk_dates_valid CHECK (end_date > start_date)
 );
 
-CREATE INDEX idx_memberships_member_id
-    ON fitness_center_team4.memberships(member_id);
+CREATE INDEX idx_memberships_member_id ON fitness_center_team4.memberships(member_id);
 
-CREATE INDEX idx_memberships_plan_id
-    ON fitness_center_team4.memberships(plan_id);
+CREATE INDEX idx_memberships_plan_id ON fitness_center_team4.memberships(plan_id);
