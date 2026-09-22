@@ -8,7 +8,7 @@
 | Учасник | Роль у команді | Що зроблено | Артефакти / файли |
 |---|---|---|---|
 | ... | ... | ... | ... |
-| ... | ... | ... | ... |
+| Oleksandr | Database Developer | Розробив DDL для `membership_plans` і `memberships`, створив `membership_status` ENUM, PK/FK, CHECK constraints та indexes для `member_id` і `plan_id`. | `ddl.sql` (membership section) |
 | ... | ... | ... | ... |
 
 ## Контекст теми
