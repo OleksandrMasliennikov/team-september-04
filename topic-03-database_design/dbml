@@ -74,6 +74,7 @@ Table membership_plans {
   duration_months int [not null]
   price decimal(10,2) [not null]
 }
+
 Table trainers {
   trainer_id int [pk, increment]
   first_name varchar(50) [not null]
