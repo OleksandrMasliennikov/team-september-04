@@ -52,12 +52,12 @@ CREATE INDEX idx_members_phone ON fitness_center_team4.members(phone);
 
 CREATE TABLE fitness_center_team4.trainers (
   trainer_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  first_name varchar(50) NOT NULL,
-  last_name varchar(50) NOT NULL,
-  birth_date date,
-  phone varchar(20),
-  email varchar(100) UNIQUE,
-  hire_date date
+  first_name VARCHAR(50) NOT NULL,
+  last_name VARCHAR(50) NOT NULL,
+  birth_date DATE,
+  phone VARCHAR(20),
+  email VARCHAR(100) UNIQUE,
+  hire_date DATE
  );
 
 CREATE TABLE fitness_center_team4.membership_plans (
