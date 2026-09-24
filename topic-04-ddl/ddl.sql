@@ -52,7 +52,7 @@ CREATE TABLE fitness_center_team4.trainers (
     phone VARCHAR(20),
     email VARCHAR(100) UNIQUE,
     hire_date DATE
- );
+);
 
 CREATE TYPE fitness_center_team4.membership_status AS ENUM (
     'active',
