@@ -29,13 +29,6 @@
 -- Add your DDL below this line
 CREATE SCHEMA IF NOT EXISTS fitness_center_team4;
 
-CREATE TYPE fitness_center_team4.membership_status AS ENUM (
-    'active',
-    'expired',
-    'frozen',
-    'cancelled'
-);
-
 CREATE TABLE fitness_center_team4.members (
     member_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -46,27 +39,37 @@ CREATE TABLE fitness_center_team4.members (
     registration_date DATE DEFAULT CURRENT_DATE
 );
 
-CREATE INDEX idx_members_last_first_name ON fitness_center_team4.members(last_name, first_name);
-CREATE INDEX idx_members_phone ON fitness_center_team4.members(phone);
-
+CREATE INDEX idx_members_last_first_name
+    ON fitness_center_team4.members(last_name, first_name);
+CREATE INDEX idx_members_phone
+    ON fitness_center_team4.members(phone);
 
 CREATE TABLE fitness_center_team4.trainers (
-  trainer_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  first_name VARCHAR(50) NOT NULL,
-  last_name VARCHAR(50) NOT NULL,
-  birth_date DATE,
-  phone VARCHAR(20),
-  email VARCHAR(100) UNIQUE,
-  hire_date DATE
+    trainer_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    birth_date DATE,
+    phone VARCHAR(20),
+    email VARCHAR(100) UNIQUE,
+    hire_date DATE
  );
+
+CREATE TYPE fitness_center_team4.membership_status AS ENUM (
+    'active',
+    'expired',
+    'frozen',
+    'cancelled'
+);
 
 CREATE TABLE fitness_center_team4.membership_plans (
     plan_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     plan_name VARCHAR(50) NOT NULL UNIQUE,
     duration_months INTEGER NOT NULL,
     price NUMERIC(10, 2) NOT NULL,
-    CONSTRAINT chk_duration_positive CHECK (duration_months > 0),
-    CONSTRAINT chk_price_non_negative CHECK (price >= 0)
+    CONSTRAINT chk_membership_plans_duration_positive
+        CHECK (duration_months > 0),
+    CONSTRAINT chk_membership_plans_price_non_negative
+        CHECK (price >= 0)
 );
 
 CREATE TABLE fitness_center_team4.memberships (
@@ -77,18 +80,23 @@ CREATE TABLE fitness_center_team4.memberships (
     end_date DATE NOT NULL,
     status fitness_center_team4.membership_status NOT NULL DEFAULT 'active',
 
-    CONSTRAINT fk_memberships_member FOREIGN KEY (member_id) REFERENCES fitness_center_team4.members(member_id),
+    CONSTRAINT fk_memberships_member
+        FOREIGN KEY (member_id)
+        REFERENCES fitness_center_team4.members(member_id),
 
-    CONSTRAINT fk_memberships_plan FOREIGN KEY (plan_id) REFERENCES fitness_center_team4.membership_plans(plan_id),
+    CONSTRAINT fk_memberships_plan
+        FOREIGN KEY (plan_id)
+        REFERENCES fitness_center_team4.membership_plans(plan_id),
 
-    CONSTRAINT chk_dates_valid CHECK (end_date > start_date)
+    CONSTRAINT chk_memberships_dates_valid
+        CHECK (end_date > start_date)
 );
 
+CREATE INDEX idx_memberships_member_id
+    ON fitness_center_team4.memberships(member_id);
 
-CREATE INDEX idx_memberships_member_id ON fitness_center_team4.memberships(member_id);
-
-CREATE INDEX idx_memberships_plan_id ON fitness_center_team4.memberships(plan_id);
-
+CREATE INDEX idx_memberships_plan_id
+    ON fitness_center_team4.memberships(plan_id);
 
 CREATE TABLE fitness_center_team4.attendance (
     attendance_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -96,13 +104,16 @@ CREATE TABLE fitness_center_team4.attendance (
     class_id INTEGER NOT NULL,
     checked_in_at TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT fk_attendance_member FOREIGN KEY (member_id)
+    CONSTRAINT fk_attendance_member
+        FOREIGN KEY (member_id)
         REFERENCES fitness_center_team4.members(member_id),
 
-    CONSTRAINT fk_attendance_class FOREIGN KEY (class_id)
+    CONSTRAINT fk_attendance_class
+        FOREIGN KEY (class_id)
         REFERENCES fitness_center_team4.classes(class_id),
 
-    CONSTRAINT uq_attendance_member_class UNIQUE (member_id, class_id)
+    CONSTRAINT uq_attendance_member_class
+        UNIQUE (member_id, class_id)
 );
 
 CREATE INDEX idx_attendance_class_id
