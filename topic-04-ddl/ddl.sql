@@ -1,59 +1,18 @@
 -- ================================================================
--- SQL DDL TEMPLATE (TOPIC 04)
+-- SQL DDL (TOPIC 04) - Fitness Center Management, Team 4
 -- ================================================================
--- WHAT SHOULD BE ADDED HERE:
--- 1) Full PostgreSQL DDL for your finalized schema.
--- 2) CREATE TABLE statements for all entities from your ER diagram.
--- 3) Primary keys, foreign keys, NOT NULL, UNIQUE, CHECK constraints.
--- 4) Indexes for important search/join columns.
--- 5) Clean structure and comments (group by tables/constraints/indexes).
---
--- RECOMMENDED ORDER:
--- 1) Tables
--- 2) Constraints (if not inline)
--- 3) Indexes
---
--- TEAM NOTE:
--- Add short attribution comments for who implemented which part.
--- Example:
--- [Name] - users, roles, permissions tables
--- [Boris] - members table, constraints (NOT NULL, UNIQUE email, DEFAULT registration_date), and search indexes (phone, last_name, first_name)
--- [Oleksandr] - membership_plans and memberships tables, membership_status ENUM, constraints, foreign keys, and indexes
---
--- IMPORTANT:
--- The script must run in PostgreSQL and produce a working schema that
--- matches your approved ER diagram and conceptual schema.
--- Submit this as one SQL file.
+-- [Boris]     - members (constraints, search indexes)
+-- [Oksana]    - trainers
+-- [Oleksandr] - membership_plans, memberships, membership_status ENUM
+-- [Vasyl]     - attendance
+-- [Yehor]     - classes, review fixes
 -- ================================================================
 
--- Add your DDL below this line
 CREATE SCHEMA IF NOT EXISTS fitness_center_team4;
 
-CREATE TABLE fitness_center_team4.members (
-    member_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    phone VARCHAR(20),
-    email VARCHAR(100) UNIQUE,
-    birth_date DATE,
-    registration_date DATE DEFAULT CURRENT_DATE
-);
-
-CREATE INDEX idx_members_last_first_name
-    ON fitness_center_team4.members(last_name, first_name);
-CREATE INDEX idx_members_phone
-    ON fitness_center_team4.members(phone);
-
-CREATE TABLE fitness_center_team4.trainers (
-    trainer_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    birth_date DATE,
-    phone VARCHAR(20),
-    email VARCHAR(100) UNIQUE,
-    hire_date DATE
-);
-
+-- ================================================================
+-- 1) TYPES
+-- ================================================================
 CREATE TYPE fitness_center_team4.membership_status AS ENUM (
     'active',
     'expired',
@@ -61,11 +20,53 @@ CREATE TYPE fitness_center_team4.membership_status AS ENUM (
     'cancelled'
 );
 
+-- ================================================================
+-- 2) TABLES (in dependency order)
+-- ================================================================
+
+-- [Boris]
+CREATE TABLE fitness_center_team4.members (
+    member_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    phone VARCHAR(20),
+    email VARCHAR(100) UNIQUE,
+    birth_date DATE,
+    registration_date DATE NOT NULL DEFAULT CURRENT_DATE,
+
+    CONSTRAINT chk_members_birth_date
+        CHECK (birth_date IS NULL OR birth_date >= DATE '1900-01-01'),
+    CONSTRAINT chk_members_email_format
+        CHECK (email IS NULL
+               OR email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+);
+
+-- [Oksana]
+CREATE TABLE fitness_center_team4.trainers (
+    trainer_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    birth_date DATE,
+    phone VARCHAR(20),
+    email VARCHAR(100) UNIQUE,
+    hire_date DATE,
+
+    CONSTRAINT chk_trainers_birth_date
+        CHECK (birth_date IS NULL OR birth_date >= DATE '1900-01-01'),
+    CONSTRAINT chk_trainers_email_format
+        CHECK (email IS NULL
+               OR email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
+    CONSTRAINT chk_trainers_hire_after_birth
+        CHECK (birth_date IS NULL OR hire_date IS NULL OR hire_date > birth_date)
+);
+
+-- [Oleksandr]
 CREATE TABLE fitness_center_team4.membership_plans (
     plan_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     plan_name VARCHAR(50) NOT NULL UNIQUE,
     duration_months INTEGER NOT NULL,
     price NUMERIC(10, 2) NOT NULL,
+
     CONSTRAINT chk_membership_plans_duration_positive
         CHECK (duration_months > 0),
     CONSTRAINT chk_membership_plans_price_non_negative
@@ -92,12 +93,7 @@ CREATE TABLE fitness_center_team4.memberships (
         CHECK (end_date > start_date)
 );
 
-CREATE INDEX idx_memberships_member_id
-    ON fitness_center_team4.memberships(member_id);
-
-CREATE INDEX idx_memberships_plan_id
-    ON fitness_center_team4.memberships(plan_id);
-
+-- [Yehor]
 CREATE TABLE fitness_center_team4.classes (
     class_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     class_name VARCHAR(100) NOT NULL,
@@ -106,12 +102,13 @@ CREATE TABLE fitness_center_team4.classes (
 
     CONSTRAINT fk_classes_trainer
         FOREIGN KEY (trainer_id)
-        REFERENCES fitness_center_team4.trainers(trainer_id)
+        REFERENCES fitness_center_team4.trainers(trainer_id),
+
+    CONSTRAINT uq_classes_trainer_schedule
+        UNIQUE (trainer_id, schedule_datetime)
 );
 
-CREATE INDEX idx_classes_trainer_id
-    ON fitness_center_team4.classes(trainer_id);
-
+-- [Vasyl]
 CREATE TABLE fitness_center_team4.attendance (
     attendance_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     member_id INTEGER NOT NULL,
@@ -130,5 +127,28 @@ CREATE TABLE fitness_center_team4.attendance (
         UNIQUE (member_id, class_id)
 );
 
+-- ================================================================
+-- 3) INDEXES
+-- ================================================================
+
+-- members [Boris]
+CREATE INDEX idx_members_last_first_name
+    ON fitness_center_team4.members(last_name, first_name);
+
+CREATE INDEX idx_members_phone
+    ON fitness_center_team4.members(phone);
+
+-- memberships [Oleksandr]
+CREATE INDEX idx_memberships_member_id
+    ON fitness_center_team4.memberships(member_id);
+
+CREATE INDEX idx_memberships_plan_id
+    ON fitness_center_team4.memberships(plan_id);
+
+-- classes [Yehor]
+CREATE INDEX idx_classes_schedule_datetime
+    ON fitness_center_team4.classes(schedule_datetime);
+
+-- attendance [Vasyl]
 CREATE INDEX idx_attendance_class_id
     ON fitness_center_team4.attendance(class_id);
