@@ -48,7 +48,7 @@ CREATE TABLE fitness_center_team4.members (
     CONSTRAINT chk_members_registration_after_birth
         CHECK (birth_date IS NULL OR registration_date > birth_date),
     -- Додати обмеження: дата реєстрації має бути пізніше за дату народження
-    CONSTRAINT chk_members_registration_after_birth
+    CONSTRAINT chk_members_reg_date_after_birth
         CHECK (birth_date IS NULL OR registration_date > birth_date),
     -- Захист від порожніх імен з пробілів
     CONSTRAINT chk_members_first_name_not_empty
