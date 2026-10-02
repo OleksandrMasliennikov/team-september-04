@@ -16,6 +16,10 @@ CREATE EXTENSION IF NOT EXISTS citext;
 -- ================================================================
 -- 1) TYPES
 -- ================================================================
+-- [Boris] Домен email з перевіркою через Regex та підтримкою CITEXT
+CREATE DOMAIN fitness_center_team4.email_address AS CITEXT
+    CHECK (VALUE ~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$');
+
 CREATE TYPE fitness_center_team4.membership_status AS ENUM (
     'active',
     'expired',
@@ -33,15 +37,24 @@ CREATE TABLE fitness_center_team4.members (
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     phone VARCHAR(20),
-    email CITEXT UNIQUE,
+    email fitness_center_team4.email_address UNIQUE,
     birth_date DATE,
     registration_date DATE NOT NULL DEFAULT CURRENT_DATE,
 
+    -- Перевірка дати народження (від 1900 року до сьогодення)
     CONSTRAINT chk_members_birth_date
-        CHECK (birth_date IS NULL OR birth_date >= DATE '1900-01-01'),
-    CONSTRAINT chk_members_email_format
-        CHECK (email IS NULL
-               OR email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+        CHECK (birth_date IS NULL OR (birth_date >= DATE '1900-01-01' AND birth_date <= CURRENT_DATE)),
+    -- Реєстрація повинна бути пізніше за дату народження
+    CONSTRAINT chk_members_registration_after_birth
+        CHECK (birth_date IS NULL OR registration_date > birth_date),
+    -- Додати обмеження: дата реєстрації має бути пізніше за дату народження
+    CONSTRAINT chk_members_registration_after_birth
+        CHECK (birth_date IS NULL OR registration_date > birth_date),
+    -- Захист від порожніх імен з пробілів
+    CONSTRAINT chk_members_first_name_not_empty
+        CHECK (length(trim(first_name)) > 0),
+    CONSTRAINT chk_members_last_name_not_empty
+        CHECK (length(trim(last_name)) > 0)
 );
 
 -- [Oksana]
