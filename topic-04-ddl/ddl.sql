@@ -10,6 +10,9 @@
 
 CREATE SCHEMA IF NOT EXISTS fitness_center_team4;
 
+--  [Boris] Підключаємо розширення для нечутливості email до регістру
+CREATE EXTENSION IF NOT EXISTS citext;
+
 -- ================================================================
 -- 1) TYPES
 -- ================================================================
@@ -30,7 +33,7 @@ CREATE TABLE fitness_center_team4.members (
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     phone VARCHAR(20),
-    email VARCHAR(100) UNIQUE,
+    email CITEXT UNIQUE,
     birth_date DATE,
     registration_date DATE NOT NULL DEFAULT CURRENT_DATE,
 
