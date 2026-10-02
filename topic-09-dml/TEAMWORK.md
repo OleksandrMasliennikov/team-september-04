@@ -7,7 +7,7 @@
 ## Таблиця внесків
 | Учасник | Роль у команді | Що зроблено | Артефакти / файли |
 |---|---|---|---|
-| Boris | Database Developer DML | озробка DML-скриптів для таблиці members: валідна вставка (12 записів), тестування constraints (CHECK, CITEXT, UNIQUE), сценарії UPDATE, DELETE із RETURNING. | dml.sql (сегмент members) |
+| Boris | Database Developer DML | розробка DML-скриптів для таблиці members: валідна вставка (12 записів), тестування constraints (CHECK, CITEXT, UNIQUE), сценарії UPDATE, DELETE із RETURNING. | dml.sql (сегмент members) |
 | ... | ... | ... | ... |
 | ... | ... | ... | ... |
 
