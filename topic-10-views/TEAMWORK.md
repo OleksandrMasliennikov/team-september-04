@@ -1,13 +1,13 @@
 # TEAMWORK - Topic 10 (SQL Views)
 
 ## Склад команди
-- Команда: ...
-- Варіант предметної області: ...
+- Команда: Team 4
+- Варіант предметної області: Fitness Center Management System
 
 ## Таблиця внесків
 | Учасник | Роль у команді | Що зроблено | Артефакти / файли |
 |---|---|---|---|
-| ... | ... | ... | ... |
+| Boris | Boris	Views Developer (Members) | Створив horizontal, vertical, mixed, JOIN, subquery, UNION, view-from-view та CHECK OPTION views, підготував документацію та коментарі до views | views.sql |
 | ... | ... | ... | ... |
 | ... | ... | ... | ... |
 
