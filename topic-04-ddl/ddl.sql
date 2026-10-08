@@ -64,14 +64,12 @@ CREATE TABLE fitness_center_team4.trainers (
     last_name VARCHAR(50) NOT NULL,
     birth_date DATE,
     phone VARCHAR(20),
-    email VARCHAR(100) UNIQUE,
+    email fitness_center_team4.email_address UNIQUE,
     hire_date DATE,
 
     CONSTRAINT chk_trainers_birth_date
         CHECK (birth_date IS NULL OR birth_date >= DATE '1900-01-01'),
-    CONSTRAINT chk_trainers_email_format
-        CHECK (email IS NULL
-               OR email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
+
     CONSTRAINT chk_trainers_hire_after_birth
         CHECK (birth_date IS NULL OR hire_date IS NULL OR hire_date > birth_date)
 );
