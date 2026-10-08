@@ -9,7 +9,7 @@
 |---|---|---|---|
 | Boris | Database Developer DML | розробка DML-скриптів для таблиці members: валідна вставка (12 записів), тестування constraints (CHECK, CITEXT, UNIQUE), сценарії UPDATE, DELETE із RETURNING. | dml.sql (сегмент members) |
 | Oleksandr | Database Developer DML | DML для `membership_plans` і `memberships`: 10 тарифних планів, 13 абонементів з усіма статусами ENUM (`active`, `expired`, `frozen`, `cancelled`), `member_id` і `plan_id` підставляються через підзапити за `email` і `plan_name`, а не числами. 8 негативних тестів (UNIQUE, CHECK тривалості, ціни й дат, обидва FOREIGN KEY, неіснуюче значення ENUM, видалення плану, що використовується). UPDATE: зміна ціни плану, заморозка абонемента, переведення прострочених абонементів у `expired`. DELETE лише для помилково створених записів: справжні абонементи — це історія покупок, їх скасовують статусом `cancelled`, а не видаляють. | dml.sql (сегмент membership_plans, memberships) |
-| Oksana | Database Developer DML | розробка DML-скриптів для таблиці trainers: валідна вставка (10 записів), тестування constraints (CHECK, CITEXT, UNIQUE), сценарії UPDATE, DELETE із RETURNING. | dml.sql (сегмент trainers) |
+| Oksana | Database Developer DML | розробка DML-скриптів для таблиці trainers: валідна вставка (12 записів), тестування constraints (CHECK, CITEXT, UNIQUE), сценарії UPDATE, DELETE із RETURNING. | dml.sql (сегмент trainers) |
 | ... | ... | ... | ... |
 
 ## Контекст теми
