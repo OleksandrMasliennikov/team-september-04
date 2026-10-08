@@ -65,13 +65,13 @@ CREATE TABLE fitness_center_team4.trainers (
     birth_date DATE,
     phone VARCHAR(20),
     email fitness_center_team4.email_address UNIQUE,
-    hire_date DATE,
+    hire_date DATE NOT NULL,
 
     CONSTRAINT chk_trainers_birth_date
         CHECK (birth_date IS NULL OR birth_date >= DATE '1900-01-01'),
 
     CONSTRAINT chk_trainers_hire_after_birth
-        CHECK (birth_date IS NULL OR hire_date IS NULL OR hire_date > birth_date)
+        CHECK (birth_date IS NULL OR hire_date > birth_date)
 );
 
 -- [Oleksandr]
