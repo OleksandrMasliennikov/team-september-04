@@ -144,7 +144,7 @@ WHERE email = 'o.test@gmail.com';
 -- [Oksana] Таблиця trainers: вставка, невалідні INSERT, UPDATE, DELETE
 -- ================================================
 
--- -- Вставка валідних даних у таблицю  trainers (10 записів)
+-- -- Вставка валідних даних у таблицю  trainers (12 записів)
 
 INSERT INTO fitness_center_team4.trainers 
 (first_name, last_name, birth_date, phone, email, hire_date) VALUES 
@@ -166,7 +166,7 @@ INSERT INTO fitness_center_team4.trainers
 
 -- Записи з NULL значеннями у двох optional-полях (без phone та без birth_date)
 ('Роман', 'Мороз', NULL, NULL, 'r.moroz@example.com', '2019-01-21'),
-('Юлія', 'Петренко', NULL, NULL, 'y.petrenko@example.com', '2022-04-18')
+('Юлія', 'Петренко', NULL, NULL, 'y.petrenko@example.com', '2022-04-18');
 
 -- ================================================
 -- [Oksana] Таблиця trainers [Невалідні INSERT] (кожен має давати помилку)
@@ -245,13 +245,13 @@ INSERT INTO fitness_center_team4.trainers
 -- [Oksana] Таблиця trainers [UPDATE]: оновлення даних тренерів
 -- ================================================
 
--- Змінити телефон Олександра Коваленка
+-- Змінити телефон для тренера Андрій Мельник
 -- Умова за іменем, прізвищем і email, щоб змінився лише один рядок
 UPDATE fitness_center_team4.trainers
 SET phone = '+380672222222'
 WHERE first_name = 'Андрій' 
   AND last_name = 'Мельник'
-  AND email = 'a.melnyk@example.com'
+  AND email = 'a.melnyk@example.com';
 
 -- Змінити прізвище Олена Романюк на Тарасюк
 -- Умова за email, щоб не зачепити інших учасників
@@ -263,7 +263,7 @@ WHERE email = 'o.romaniuk@example.com';
 -- [Oksana] Таблиця trainers [DELETE]: видалення тестового учасника
 -- ================================================
 
--- Спочатку вставляємо учасника, який не матиме зв'язків
+-- Створимо тестового учасника для перевірки видалення
 INSERT INTO fitness_center_team4.trainers
   (first_name, last_name, birth_date, phone, email, hire_date)
 VALUES
