@@ -139,6 +139,147 @@ RETURNING member_id, first_name, last_name;
 SELECT * FROM fitness_center_team4.members
 WHERE email = 'o.test@gmail.com';
 
+
+-- ================================================
+-- [Oksana] Таблиця trainers: вставка, невалідні INSERT, UPDATE, DELETE
+-- ================================================
+
+-- -- Вставка валідних даних у таблицю  trainers (10 записів)
+
+INSERT INTO fitness_center_team4.trainers 
+(first_name, last_name, birth_date, phone, email, hire_date) VALUES 
+  -- Записи з повними даними
+('Андрій', 'Мельник', '1988-04-12', '+380671234501', 'a.melnyk@example.com', '2018-06-15'),
+('Ірина', 'Ткаченко', '1992-09-23', '+380501234502', 'i.tkachenko@example.com', '2020-02-10'),
+('Владислав', 'Кравченко', '1985-01-17', '+380931234503', 'v.kravchenko@example.com', '2016-11-01'),
+('Марія', 'Олійник', '1995-07-08', '+380631234504', 'm.oliinyk@example.com', '2021-05-20'),
+('Богдан', 'Лисенко', '1997-02-11', '+380731234507', 'b.lysenko@example.com', '2022-08-01'),
+('Катерина', 'Бойко', '1996-08-14', '+380991234510', 'k.boiko@example.com', '2023-01-16'),
+
+-- Записи з NULL значеннями (відсутній birth_date)
+('Дмитро', 'Савченко', NULL, '+380661234505', 'd.savchenko@example.com', '2019-09-02'),
+('Олена', 'Романюк', NULL, '+380971234506', 'o.romaniuk@example.com', '2017-03-14'),
+
+-- Записи з NULL значеннями (відсутній phone)
+('Наталія', 'Ковальчук', '1993-10-19', NULL, 'n.kovalchuk@example.com', '2020-10-12'),
+('Сергій', 'Поліщук', '1984-05-30', NULL, 's.polishchuk@example.com', '2015-04-06'),
+
+-- Записи з NULL значеннями у двох optional-полях (без phone та без birth_date)
+('Роман', 'Мороз', NULL, NULL, 'r.moroz@example.com', '2019-01-21'),
+('Юлія', 'Петренко', NULL, NULL, 'y.petrenko@example.com', '2022-04-18')
+
+-- ================================================
+-- [Oksana] Таблиця trainers [Невалідні INSERT] (кожен має давати помилку)
+-- Запускати по одному, прибравши -- перед рядками
+-- ================================================
+
+-- 1. email: після @ немає домену
+-- Очікується: value for domain fitness_center_team4.email_address violates check constraint "email_address_check"
+-- INSERT INTO fitness_center_team4.trainers
+--   (first_name, last_name, birth_date, phone, email, hire_date)
+-- VALUES
+--  ('Андрій', 'Мельник', '1988-04-12', '+380671234501', 'a.melnyk2@e', '2018-06-15');
+
+-- 2. email: немає символу @
+-- Очікується: value for domain fitness_center_team4.email_address violates check constraint "email_address_check"
+-- INSERT INTO fitness_center_team4.trainers
+--   (first_name, last_name, birth_date, phone, email, hire_date)
+-- VALUES
+--   ('Андрій', 'Мельник', '1988-04-12', '+380671234501', 'a.melnyk2.example.com', '2018-06-15');
+
+-- 3. Дублікат email: точно такий самий
+-- Очікується: duplicate key value violates unique constraint "trainers_email_key"
+-- DETAIL:  Key (email)=(a.melnyk@example.com) already exists.
+
+-- INSERT INTO fitness_center_team4.trainers
+--   (first_name, last_name, birth_date, phone, email, hire_date)
+-- VALUES
+--   ('Арсеній', 'Мельник', '1992-06-26', '+380671234501', 'a.melnyk@example.com', '2018-06-15');
+
+-- 4. Дублікат email: відрізняється лише регістром (CITEXT)
+-- Очікується: duplicate key value violates unique constraint "trainers_email_key"
+-- DETAIL:  Key (email)=(a.melnyk@example.com) already exists.
+
+-- INSERT INTO fitness_center_team4.trainers
+--   (first_name, last_name, birth_date, phone, email, hire_date)
+-- VALUES
+--   ('Арсеній', 'Мельник', '1992-06-26', '+380671234501', 'a.Melnyk@example.com', '2018-06-15');
+
+-- 5. Дата народження раніше 1900 року
+-- Очікується: new row for relation "trainers" violates check constraint "chk_trainers_birth_date"
+
+-- INSERT INTO fitness_center_team4.trainers
+--   (first_name, last_name, birth_date, phone, email, hire_date)
+-- VALUES
+--   ('Іван', 'Петренко', '1899-12-31', '+380671234520',
+--    'i.petrenko@example.com', '2020-05-10');
+
+-- 6. Дата прийому на роботу раніше дати народження
+-- Очікується: violates check constraint "chk_trainers_hire_after_birth"
+
+-- INSERT INTO fitness_center_team4.trainers
+--   (first_name, last_name, birth_date, phone, email, hire_date)
+-- VALUES
+--   ('Іван', 'Петренко', '1990-05-10', '+380671234521',
+--    'i.petrenko2@example.com', '1989-05-10');
+
+-- 7. Відсутня дата прийому на роботу
+-- Очікується: null value in column "hire_date" violates not-null constraint
+
+-- INSERT INTO fitness_center_team4.trainers
+--   (first_name, last_name, birth_date, phone, email, hire_date)
+-- VALUES
+--   ('Іван', 'Петренко', '1990-05-10', '+380671234522',
+--    'i.petrenko3@example.com', NULL);
+
+-- 8. Відсутнє ім'я тренера
+-- Очікується: null value in column "first_name" violates not-null constraint
+
+-- INSERT INTO fitness_center_team4.trainers
+--   (first_name, last_name, birth_date, phone, email, hire_date)
+-- VALUES
+--   (NULL, 'Петренко', '1990-05-10', '+380671234523',
+--    'i.petrenko4@example.com', '2020-05-10');
+
+-- ================================================
+-- [Oksana] Таблиця trainers [UPDATE]: оновлення даних тренерів
+-- ================================================
+
+-- Змінити телефон Олександра Коваленка
+-- Умова за іменем, прізвищем і email, щоб змінився лише один рядок
+UPDATE fitness_center_team4.trainers
+SET phone = '+380672222222'
+WHERE first_name = 'Андрій' 
+  AND last_name = 'Мельник'
+  AND email = 'a.melnyk@example.com'
+
+-- Змінити прізвище Олена Романюк на Тарасюк
+-- Умова за email, щоб не зачепити інших учасників
+UPDATE fitness_center_team4.trainers
+SET last_name = 'Тарасюк'
+WHERE email = 'o.romaniuk@example.com';
+
+-- ================================================
+-- [Oksana] Таблиця trainers [DELETE]: видалення тестового учасника
+-- ================================================
+
+-- Спочатку вставляємо учасника, який не матиме зв'язків
+INSERT INTO fitness_center_team4.trainers
+  (first_name, last_name, birth_date, phone, email, hire_date)
+VALUES
+  ('Євген', 'Кравченко', '1992-06-26', '+380671234501', 'e.kravchenko@example.com', '2018-06-15');
+
+-- Видаляємо його за email
+-- RETURNING показує, кого саме видалено по цим колонкам trainer_id, first_name, last_name
+DELETE FROM fitness_center_team4.trainers
+WHERE email = 'e.kravchenko@example.com'
+RETURNING trainer_id, first_name, last_name;
+
+-- Перевірка: має повернути 0 рядків
+SELECT * FROM fitness_center_team4.trainers
+WHERE email = 'e.kravchenko@example.com';
+
+
 -- ================================================================
 -- [Oleksandr] Таблиці membership_plans та memberships
 -- ================================================================
