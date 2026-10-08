@@ -139,4 +139,255 @@ RETURNING member_id, first_name, last_name;
 SELECT * FROM fitness_center_team4.members
 WHERE email = 'o.test@gmail.com';
 
+-- ================================================================
+-- [Oleksandr] Таблиці membership_plans та memberships
+-- ================================================================
+-- Порядок: спочатку membership_plans (довідник тарифів),
+-- потім memberships (абонементи), бо memberships посилається
+-- і на members, і на membership_plans через FOREIGN KEY.
+--
+-- member_id та plan_id НЕ прописані числами: вони шукаються
+-- за email (UNIQUE у members) та plan_name (UNIQUE у membership_plans).
+-- Так скрипт не залежить від того, які id згенерує IDENTITY,
+-- а якщо email або назву плану змінять, INSERT впаде з помилкою
+-- NOT NULL, а не прив'яже абонемент до чужої людини.
+-- ================================================================
 
+
+-- ================================================
+-- [Oleksandr] membership_plans: вставка тарифів (10 записів)
+-- ================================================
+-- Ціни в гривнях. 'Пробний місяць' має ціну 0.00:
+-- це граничне значення для CHECK (price >= 0).
+INSERT INTO fitness_center_team4.membership_plans (plan_name, duration_months, price)
+VALUES
+  ('Пробний місяць',           1,     0.00),
+  ('Місячний',                 1,   900.00),
+  ('Ранковий місячний',        1,   700.00),
+  ('Студентський місячний',    1,   600.00),
+  ('Квартальний',              3,  2400.00),
+  ('Студентський квартальний', 3,  1600.00),
+  ('Піврічний',                6,  4500.00),
+  ('Річний',                  12,  8000.00),
+  ('Преміум річний',          12, 12000.00),
+  ('Сімейний річний',         12, 14000.00);
+
+
+-- ================================================
+-- [Oleksandr] memberships: вставка абонементів (13 записів)
+-- ================================================
+-- Дані узгоджені з members [Boris]:
+-- - start_date не раніше за registration_date клієнта;
+-- - end_date = start_date + duration_months плану;
+-- - status відповідає датам (поточна дата проєкту: жовтень 2026):
+--   expired - строк минув, active - діє, frozen - призупинений,
+--   cancelled - клієнт відмовився достроково.
+-- Олександр Коваленко та Вікторія Лисенко мають по 2 абонементи
+-- (історія + поточний) - це демонструє зв'язок one-to-many.
+-- Василь Мороз свідомо без абонемента (знадобиться для DELETE-тесту).
+INSERT INTO fitness_center_team4.memberships (member_id, plan_id, start_date, end_date, status)
+VALUES
+  -- Олександр Коваленко: старий річний (минув) + новий річний (діє)
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'o.kovalenko@example.com'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Річний'),
+   '2022-02-01', '2023-02-01', 'expired'),
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'o.kovalenko@example.com'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Річний'),
+   '2025-11-01', '2026-11-01', 'active'),
+
+  -- Анна Шевченко: квартальний, діє
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'a.shevchenko@example.org'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Квартальний'),
+   '2026-08-15', '2026-11-15', 'active'),
+
+  -- Максим Бондаренко: студентський квартальний, минув
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'm.bondarenko@example.net'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Студентський квартальний'),
+   '2023-03-10', '2023-06-10', 'expired'),
+
+  -- Марія Мельник: студентський місячний, діє
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'm.melnyk@example.com'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Студентський місячний'),
+   '2026-09-20', '2026-10-20', 'active'),
+
+  -- Дмитро Ткаченко: преміум річний, діє
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'd.tkachenko@domain.com'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Преміум річний'),
+   '2026-01-10', '2027-01-10', 'active'),
+
+  -- Олена Кравченко: піврічний, заморожений
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'o.kravchenko@domain.org'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Піврічний'),
+   '2026-05-01', '2026-11-01', 'frozen'),
+
+  -- Андрій Коваль: місячний, минув
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'a.koval@test-mail.com'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Місячний'),
+   '2026-07-01', '2026-08-01', 'expired'),
+
+  -- Ірина Бойко: сімейний річний, діє
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'i.boyko@example.com'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Сімейний річний'),
+   '2026-03-01', '2027-03-01', 'active'),
+
+  -- Сергій Поліщук: ранковий місячний, діє
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 's.polishchuk@domain.net'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Ранковий місячний'),
+   '2026-09-15', '2026-10-15', 'active'),
+
+  -- Вікторія Лисенко: пробний (минув) + квартальний (скасований)
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'v.lysenko@test-mail.org'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Пробний місяць'),
+   '2023-06-30', '2023-07-30', 'expired'),
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'v.lysenko@test-mail.org'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Квартальний'),
+   '2026-06-01', '2026-09-01', 'cancelled'),
+
+  -- Юлія Руденко: місячний, діє (status не вказаний -> DEFAULT 'active')
+  ((SELECT member_id FROM fitness_center_team4.members WHERE email = 'y.rudenko@domain.com'),
+   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Місячний'),
+   '2026-10-01', '2026-11-01', DEFAULT);
+
+
+-- ================================================
+-- [Oleksandr] Невалідні INSERT (кожен має давати помилку)
+-- Запускати по одному, прибравши -- перед рядками
+-- ================================================
+
+-- 1. Дублікат назви плану
+-- Очікується: duplicate key value violates unique constraint "membership_plans_plan_name_key"
+-- INSERT INTO fitness_center_team4.membership_plans (plan_name, duration_months, price)
+-- VALUES ('Місячний', 1, 1000.00);
+
+-- 2. Тривалість плану 0 місяців
+-- Очікується: violates check constraint "chk_membership_plans_duration_positive"
+-- INSERT INTO fitness_center_team4.membership_plans (plan_name, duration_months, price)
+-- VALUES ('Нульовий', 0, 500.00);
+
+-- 3. Від'ємна ціна плану
+-- Очікується: violates check constraint "chk_membership_plans_price_non_negative"
+-- INSERT INTO fitness_center_team4.membership_plans (plan_name, duration_months, price)
+-- VALUES ('Від''ємний', 1, -100.00);
+
+-- 4. Абонемент закінчується раніше, ніж починається
+-- Очікується: violates check constraint "chk_memberships_dates_valid"
+-- INSERT INTO fitness_center_team4.memberships (member_id, plan_id, start_date, end_date)
+-- VALUES (
+--   (SELECT member_id FROM fitness_center_team4.members WHERE email = 'v.moroz@example.org'),
+--   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Місячний'),
+--   '2026-10-10', '2026-10-01');
+
+-- 5. Неіснуючий клієнт (member_id, якого немає в members)
+-- Очікується: violates foreign key constraint "fk_memberships_member"
+-- INSERT INTO fitness_center_team4.memberships (member_id, plan_id, start_date, end_date)
+-- VALUES (
+--   99999,
+--   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Місячний'),
+--   '2026-10-01', '2026-11-01');
+
+-- 6. Неіснуючий тарифний план
+-- Очікується: violates foreign key constraint "fk_memberships_plan"
+-- INSERT INTO fitness_center_team4.memberships (member_id, plan_id, start_date, end_date)
+-- VALUES (
+--   (SELECT member_id FROM fitness_center_team4.members WHERE email = 'v.moroz@example.org'),
+--   99999,
+--   '2026-10-01', '2026-11-01');
+
+-- 7. Статус, якого немає в ENUM membership_status
+-- Очікується: invalid input value for enum fitness_center_team4.membership_status: "paused"
+-- INSERT INTO fitness_center_team4.memberships (member_id, plan_id, start_date, end_date, status)
+-- VALUES (
+--   (SELECT member_id FROM fitness_center_team4.members WHERE email = 'v.moroz@example.org'),
+--   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Місячний'),
+--   '2026-10-01', '2026-11-01', 'paused');
+
+
+-- ================================================
+-- [Oleksandr] UPDATE: зміна тарифів і статусів абонементів
+-- ================================================
+
+-- Підвищення ціни місячного абонемента з 900 до 950 грн.
+-- Обмеження схеми: memberships не зберігає ціну продажу, а лише
+-- посилається на план. Тому через JOIN нова ціна відобразиться
+-- і для вже проданих місячних абонементів.
+UPDATE fitness_center_team4.membership_plans
+SET price = 950.00
+WHERE plan_name = 'Місячний'
+RETURNING plan_id, plan_name, price;
+
+-- Заморозка абонемента: Анна (тепер Винник) їде у відпустку.
+-- Шукаємо за email, статусом і датами: заморожується лише абонемент,
+-- який діє зараз, а не минулі чи майбутні.
+UPDATE fitness_center_team4.memberships
+SET status = 'frozen'
+WHERE member_id = (SELECT member_id FROM fitness_center_team4.members
+                   WHERE email = 'a.shevchenko@example.org')
+  AND status = 'active'
+  AND CURRENT_DATE BETWEEN start_date AND end_date
+RETURNING membership_id, member_id, status;
+
+-- Регулярне "прибирання": усі активні абонементи, строк яких минув,
+-- переводимо в 'expired'. Результат залежить від дати запуску:
+-- у жовтні 2026 може не змінитися жоден рядок, пізніше - кілька.
+UPDATE fitness_center_team4.memberships
+SET status = 'expired'
+WHERE status = 'active'
+  AND end_date < CURRENT_DATE
+RETURNING membership_id, member_id, end_date, status;
+
+
+-- ================================================
+-- [Oleksandr] DELETE
+-- ================================================
+-- Реальні абонементи не видаляємо: це історія покупок клієнта.
+-- Для скасування є статус 'cancelled'. DELETE доречний лише для
+-- помилково створених записів, тому демонструємо його на тестових даних.
+
+-- memberships: адміністратор помилково оформив абонемент Василю Морозу
+INSERT INTO fitness_center_team4.memberships (member_id, plan_id, start_date, end_date)
+VALUES (
+  (SELECT member_id FROM fitness_center_team4.members WHERE email = 'v.moroz@example.org'),
+  (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Місячний'),
+  '2026-10-08', '2026-11-08');
+
+-- Видаляємо помилковий запис; RETURNING показує, що саме видалено
+DELETE FROM fitness_center_team4.memberships
+WHERE member_id = (SELECT member_id FROM fitness_center_team4.members
+                   WHERE email = 'v.moroz@example.org')
+  AND start_date = '2026-10-08'
+RETURNING membership_id, member_id, start_date;
+
+-- membership_plans: тестовий план без жодного абонемента можна видалити
+INSERT INTO fitness_center_team4.membership_plans (plan_name, duration_months, price)
+VALUES ('Тестовий план', 1, 1.00);
+
+DELETE FROM fitness_center_team4.membership_plans
+WHERE plan_name = 'Тестовий план'
+RETURNING plan_id, plan_name;
+
+-- План, який уже використовується в memberships, видалити НЕ можна.
+-- Очікується: violates foreign key constraint "fk_memberships_plan"
+-- DELETE FROM fitness_center_team4.membership_plans
+-- WHERE plan_name = 'Річний';
+
+
+-- ================================================
+-- [Oleksandr] Перевірка результату
+-- ================================================
+-- Очікується: 10 планів і 13 абонементів
+-- (12 клієнтів: двоє мають по 2 абонементи, Василь Мороз — жодного)
+SELECT
+  (SELECT COUNT(*) FROM fitness_center_team4.membership_plans) AS plans_count,
+  (SELECT COUNT(*) FROM fitness_center_team4.memberships)      AS memberships_count;
+
+-- Абонементи з іменами клієнтів і назвами планів
+SELECT ms.membership_id,
+       m.first_name || ' ' || m.last_name AS member_name,
+       p.plan_name,
+       ms.start_date,
+       ms.end_date,
+       ms.status
+FROM fitness_center_team4.memberships AS ms
+JOIN fitness_center_team4.members AS m ON m.member_id = ms.member_id
+JOIN fitness_center_team4.membership_plans AS p ON p.plan_id = ms.plan_id
+ORDER BY ms.membership_id;
