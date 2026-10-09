@@ -293,3 +293,272 @@ FROM fitness_center_team4.members
 WHERE email IS NOT NULL
 WITH CHECK OPTION;
 
+
+-- =====================================================
+-- Oleksandr - Views for Memberships and Membership Plans
+-- =====================================================
+-- Таблиці: membership_plans (тарифи) та memberships (абонементи).
+-- Ці views відповідають на щоденні питання адміністратора
+-- фітнес-центру: що ми продаємо, у кого абонемент діє,
+-- кому скоро продовжувати, які тарифи приносять дохід.
+-- JOIN members + memberships + membership_plans уже є у
+-- view_member_memberships (Boris, VIEW 8), тому тут не дублюється.
+-- =====================================================
+
+
+-- =====================================================
+-- VIEW 13: Прайс-лист тарифів
+-- Тип: Horizontal View
+-- Призначення:
+-- Показує лише стовпці, потрібні клієнту: назву плану,
+-- тривалість і ціну. Технічний plan_id приховано.
+-- Зв'язок з дизайном: membership_plans - довідник тарифів,
+-- цей view - його "публічна" частина для сайту чи рецепції.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.view_plan_price_list AS
+SELECT
+    plan_name,
+    duration_months,
+    price
+FROM fitness_center_team4.membership_plans;
+
+
+-- =====================================================
+-- VIEW 14: Діючі абонементи
+-- Тип: Vertical View
+-- Призначення:
+-- Залишає лише ті рядки memberships, які зараз діють:
+-- статус 'active' і строк ще не минув. Усі стовпці таблиці
+-- збережені.
+-- Зв'язок з дизайном: status (ENUM membership_status) та
+-- end_date разом визначають, чи може клієнт зараз тренуватися.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.view_active_memberships AS
+SELECT
+    membership_id,
+    member_id,
+    plan_id,
+    start_date,
+    end_date,
+    status
+FROM fitness_center_team4.memberships
+WHERE status = 'active'
+  AND end_date >= CURRENT_DATE;
+
+
+-- =====================================================
+-- VIEW 15: Абонементи, що закінчуються протягом 14 днів
+-- Тип: Mixed View
+-- Призначення:
+-- Обмежує і стовпці (лише id, дата закінчення та кількість
+-- днів, що лишилися), і рядки (лише активні абонементи, які
+-- закінчуються в найближчі 14 днів).
+-- Використовується для нагадувань клієнтам про продовження.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.view_expiring_memberships AS
+SELECT
+    membership_id,
+    member_id,
+    end_date,
+    end_date - CURRENT_DATE AS days_left
+FROM fitness_center_team4.memberships
+WHERE status = 'active'
+  AND end_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 14;
+
+
+-- =====================================================
+-- VIEW 16: Продажі та дохід за кожним тарифом
+-- Тип: JOIN View (з агрегацією)
+-- Призначення:
+-- Поєднує membership_plans і memberships, щоб показати,
+-- скільки абонементів кожного плану продано і на яку суму.
+-- LEFT JOIN залишає у звіті й тарифи без жодного продажу
+-- (для них sold_count = 0, revenue = 0).
+-- Обмеження: дохід рахується за поточною ціною плану,
+-- бо в memberships ціна продажу не зберігається.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.view_plan_sales_summary AS
+SELECT
+    mp.plan_id,
+    mp.plan_name,
+    mp.price,
+    COUNT(ms.membership_id)                 AS sold_count,
+    COUNT(ms.membership_id) * mp.price      AS revenue
+FROM fitness_center_team4.membership_plans mp
+LEFT JOIN fitness_center_team4.memberships ms
+    ON ms.plan_id = mp.plan_id
+GROUP BY
+    mp.plan_id,
+    mp.plan_name,
+    mp.price;
+
+
+-- =====================================================
+-- VIEW 17: Постійні клієнти (купували абонемент більше одного разу)
+-- Тип: View with Subquery
+-- Призначення:
+-- Підзапит знаходить member_id, які мають 2+ абонементи,
+-- а зовнішній запит показує цих клієнтів із таблиці members.
+-- Може використовуватися для програм лояльності та знижок
+-- на продовження.
+-- Зв'язок з дизайном: демонструє зв'язок one-to-many
+-- members -> memberships.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.view_returning_members AS
+SELECT
+    m.member_id,
+    m.first_name,
+    m.last_name,
+    m.email
+FROM fitness_center_team4.members m
+WHERE m.member_id IN (
+    SELECT member_id
+    FROM fitness_center_team4.memberships
+    GROUP BY member_id
+    HAVING COUNT(*) > 1
+);
+
+
+-- =====================================================
+-- VIEW 18: Поточні та минулі абонементи
+-- Тип: UNION View
+-- Призначення:
+-- Об'єднує два набори абонементів в одну історію з
+-- позначкою періоду:
+--   'Поточний' - active та frozen (клієнт ще користується);
+--   'Минулий'  - expired та cancelled (абонемент завершено).
+-- Обидва SELECT мають однакову кількість і типи стовпців,
+-- як цього вимагає UNION. Дублікатів між частинами не буде,
+-- бо умови за status не перетинаються.
+-- Тому тут дав би той самий результат і UNION ALL (він швидший,
+-- бо не шукає дублікатів); UNION залишено як основну форму з завдання.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.view_membership_history AS
+SELECT
+    membership_id,
+    member_id,
+    plan_id,
+    start_date,
+    end_date,
+    status,
+    'Поточний' AS period
+FROM fitness_center_team4.memberships
+WHERE status IN ('active', 'frozen')
+
+UNION
+
+SELECT
+    membership_id,
+    member_id,
+    plan_id,
+    start_date,
+    end_date,
+    status,
+    'Минулий' AS period
+FROM fitness_center_team4.memberships
+WHERE status IN ('expired', 'cancelled');
+
+
+-- =====================================================
+-- VIEW 19: Кількість діючих абонементів за тарифами
+-- Тип: View Based on Another View
+-- Призначення:
+-- Підсумковий звіт, побудований на view_active_memberships
+-- (VIEW 14): показує, скільки діючих абонементів має кожен
+-- тариф. Якщо зміниться правило "діючого" абонемента,
+-- його достатньо змінити в одному місці - у VIEW 14.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.view_active_memberships_by_plan AS
+SELECT
+    mp.plan_name,
+    COUNT(*) AS active_count
+FROM fitness_center_team4.view_active_memberships am
+JOIN fitness_center_team4.membership_plans mp
+    ON mp.plan_id = am.plan_id
+GROUP BY
+    mp.plan_name;
+
+
+-- =====================================================
+-- VIEW 20: Редагування лише активних абонементів
+-- Тип: Updatable View with CHECK OPTION
+-- Призначення:
+-- Через цей view адміністратор може продовжити (змінити
+-- end_date) лише активний абонемент.
+-- WITH CHECK OPTION не дозволяє через view:
+--   - додати абонемент з іншим статусом, ніж 'active';
+--   - змінити рядок так, щоб він перестав бути 'active'.
+-- Заморозка чи скасування робляться окремою операцією
+-- безпосередньо в таблиці memberships.
+-- View оновлюваний, бо побудований на одній таблиці без
+-- JOIN, GROUP BY, DISTINCT та агрегатів.
+-- Відмінність від VIEW 14: тут немає умови end_date >= CURRENT_DATE.
+-- Це навмисно: адміністратор має змогу продовжити й абонемент,
+-- строк якого вже минув, але який ще не переведено в 'expired'.
+-- Крім того, з умовою за датою demo-UPDATE нижче перестав би
+-- працювати після закінчення абонемента Юлії Руденко.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.view_editable_active_memberships AS
+SELECT
+    membership_id,
+    member_id,
+    plan_id,
+    start_date,
+    end_date,
+    status
+FROM fitness_center_team4.memberships
+WHERE status = 'active'
+WITH CHECK OPTION;
+
+
+-- =====================================================
+-- [Oleksandr] Demo SELECT для кожного view
+-- =====================================================
+
+SELECT * FROM fitness_center_team4.view_plan_price_list ORDER BY price;
+SELECT * FROM fitness_center_team4.view_active_memberships ORDER BY end_date;
+SELECT * FROM fitness_center_team4.view_expiring_memberships ORDER BY days_left;
+SELECT * FROM fitness_center_team4.view_plan_sales_summary ORDER BY revenue DESC;
+SELECT * FROM fitness_center_team4.view_returning_members ORDER BY last_name;
+SELECT * FROM fitness_center_team4.view_membership_history ORDER BY period, membership_id;
+SELECT * FROM fitness_center_team4.view_active_memberships_by_plan ORDER BY active_count DESC;
+
+
+-- =====================================================
+-- [Oleksandr] Demo CHECK OPTION (VIEW 20)
+-- =====================================================
+-- Дозволено: продовжити активний абонемент на місяць.
+-- Обгорнуто в транзакцію з ROLLBACK, щоб демо не змінювало дані.
+BEGIN;
+
+UPDATE fitness_center_team4.view_editable_active_memberships
+SET end_date = end_date + INTERVAL '1 month'
+WHERE member_id = (SELECT member_id FROM fitness_center_team4.members
+                   WHERE email = 'y.rudenko@domain.com')
+RETURNING membership_id, end_date, status;
+
+ROLLBACK;
+
+-- Заборонено: змінити статус так, що рядок зникне з view.
+-- Очікується: new row violates check option for view "view_editable_active_memberships"
+-- UPDATE fitness_center_team4.view_editable_active_memberships
+-- SET status = 'cancelled'
+-- WHERE member_id = (SELECT member_id FROM fitness_center_team4.members
+--                    WHERE email = 'y.rudenko@domain.com');
+
+-- Заборонено: додати через view абонемент зі статусом не 'active'.
+-- Очікується: new row violates check option for view "view_editable_active_memberships"
+-- INSERT INTO fitness_center_team4.view_editable_active_memberships
+--   (member_id, plan_id, start_date, end_date, status)
+-- VALUES (
+--   (SELECT member_id FROM fitness_center_team4.members WHERE email = 'v.moroz@example.org'),
+--   (SELECT plan_id FROM fitness_center_team4.membership_plans WHERE plan_name = 'Місячний'),
+--   '2026-10-01', '2026-11-01', 'frozen');
