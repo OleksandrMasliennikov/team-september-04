@@ -9,7 +9,7 @@
 |---|---|---|---|
 | Boris | Boris	Views Developer (Members) | Створив horizontal, vertical, mixed, JOIN, subquery, UNION, view-from-view та CHECK OPTION views, підготував документацію та коментарі до views | views.sql |
 | Oleksandr | Views Developer (Memberships) | Створив 8 views для `membership_plans` і `memberships`, по одному на кожен тип: horizontal (`view_plan_price_list`), vertical (`view_active_memberships`), mixed (`view_expiring_memberships`), JOIN з агрегацією (`view_plan_sales_summary`), subquery (`view_returning_members`), UNION (`view_membership_history`), view-from-view (`view_active_memberships_by_plan`), CHECK OPTION (`view_editable_active_memberships`). Додав коментарі, demo-`SELECT` і демонстрацію CHECK OPTION (дозволене оновлення в транзакції з `ROLLBACK` та два заборонені сценарії). | views.sql (секція Oleksandr, VIEW 13–20) |
-| Oksana | Oksana	Views Developer (Members) | Створила horizontal, vertical, mixed, JOIN, subquery, UNION, view-from-view та CHECK OPTION views, підготувала документацію та коментарі до views | views.sql |
+| Oksana | Oksana	Views Developer (Trainers) | Створила horizontal, vertical, mixed, JOIN, subquery, UNION, view-from-view та CHECK OPTION views, підготувала документацію та коментарі до views | views.sql |
 | ... | ... | ... | ... |
 
 ## Контекст теми
