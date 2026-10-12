@@ -293,6 +293,144 @@ FROM fitness_center_team4.members
 WHERE email IS NOT NULL
 WITH CHECK OPTION;
 
+-- =====================================================
+-- Oksana - Views for Trainers Data
+-- =====================================================
+
+-- =====================================================
+-- VIEW 1: Список тренерів, які були найняті після 2022 року
+-- Тип: Horizontal View
+-- Призначення:
+-- Відображає всі дані про тренерів, найнятих починаючи з 2023 року.
+-- Використовується для швидкого доступу до інформації про тренерів,
+-- які були найняті після 2022 року.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.trainers_hired_after_2022 AS 
+SELECT *
+FROM fitness_center_team4.trainers
+WHERE hire_date >= DATE '2023-01-01'
+
+-- =====================================================
+-- VIEW 2: Список телефонів тренерів
+-- Тип: Vertical View
+-- Призначення:
+-- Відображає ім'я, прізвище та номер телефону тренера.
+-- Використовується для швидкого знаходження телефону тренера
+-- =====================================================
+CREATE VIEW fitness_center_team4.trainers_phone_list AS 
+SELECT first_name, last_name, phone
+FROM fitness_center_team4.trainers;
+
+
+-- =====================================================
+-- VIEW 3: Список тренерів, у яких відсутній номер телефону
+-- Тип: Mixed View
+-- Призначення:
+-- Відображає основні дані тренерів, у яких не вказано номер телефону.
+-- Використовується для швидкого пошуку тренерів, для яких потрібно додати номер телефону.
+-- =====================================================
+CREATE VIEW fitness_center_team4.trainers_without_phone AS 
+SELECT first_name, last_name, email
+FROM fitness_center_team4.trainers
+WHERE phone IS NULL
+
+-- =====================================================
+-- VIEW 4: Розклад занять тренерів
+-- Тип: Join-based View
+-- Призначення:
+-- Відображає ім'я та прізвище тренера разом із назвою заняття та датою і часом його проведення.
+-- Використовується для перегляду розкладу занять та інформації про тренера, який проводить заняття.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.trainer_class_schedule AS
+SELECT t.first_name, t.last_name, c.class_name, c.schedule_datetime
+FROM fitness_center_team4.trainers AS t
+JOIN fitness_center_team4.classes AS c
+ON t.trainer_id = c.trainer_id
+
+-- =====================================================
+-- VIEW 5: Тренери, які проводять заняття
+--
+-- Тип: Subquery-based View
+--
+-- Призначення:
+-- Відображає ім'я, прізвище та email тренерів,
+-- для яких існує хоча б одне заняття в таблиці classes.
+--
+-- Використовується для отримання списку тренерів,
+-- які мають призначені заняття.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.trainers_with_classes AS
+SELECT t.first_name, t.last_name, t.email 
+FROM fitness_center_team4.trainers AS t
+WHERE EXISTS (
+  SELECT 1 
+  FROM fitness_center_team4.classes as c
+  WHERE c.trainer_id = t.trainer_id
+  )
+
+-- =====================================================
+-- VIEW 6: Загальний список контактів тренерів та учасників
+--
+-- Тип: UNION-based View
+--
+-- Призначення:
+-- Об'єднує контактні дані тренерів та учасників
+-- в один загальний список.
+--
+-- Відображає ім'я, прізвище, email та тип особи
+-- (trainer або member).
+--
+-- Використовується для перегляду контактів усіх людей,
+-- зареєстрованих у системі.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.fitness_center_contacts AS
+SELECT m.first_name, m.last_name, m.email, 'member' as person_type
+FROM fitness_center_team4.members as m
+UNION
+SELECT t.first_name, t.last_name, t.email, 'trainer' as person_type 
+FROM fitness_center_team4.trainers as t
+
+
+-- =====================================================
+-- VIEW 7: Контактні дані тренерів
+--
+-- Тип: View based on another view
+--
+-- Призначення:
+-- Відображає ім'я, прізвище та email тренерів
+-- на основі представлення fitness_center_contacts.
+--
+-- Використовується для отримання контактних даних
+-- лише тренерів із загального списку контактів.
+-- =====================================================
+CREATE VIEW fitness_center_team4.trainer_contacts AS
+SELECT first_name, last_name, email 
+FROM fitness_center_team4.fitness_center_contacts
+WHERE person_type = 'trainer'
+
+
+-- =====================================================
+-- VIEW 8: Тренери, найняті починаючи з 2023 року
+--
+-- Тип: Updatable View with WITH CHECK OPTION
+--
+-- Призначення:
+-- Відображає всі дані тренерів, які були найняті
+-- починаючи з 2023 року.
+--
+-- Представлення дозволяє змінювати та додавати дані тренерів,
+-- але тільки якщо дата найму відповідає умові представлення.
+-- =====================================================
+
+CREATE VIEW fitness_center_team4.trainers_hired_since_2023 AS
+SELECT * FROM fitness_center_team4.trainers
+WHERE hire_date >= DATE '2023-01-01'
+WITH CHECK OPTION
+
 
 -- =====================================================
 -- Oleksandr - Views for Memberships and Membership Plans
